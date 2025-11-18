@@ -10,7 +10,11 @@ if (!stripeSecretKey || !webhookSecret) {
   throw new Error("Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET");
 }
 
-const stripe = new Stripe(stripeSecretKey, {
+// Create validated constants with proper types
+const validatedStripeKey: string = stripeSecretKey;
+const validatedWebhookSecret: string = webhookSecret;
+
+const stripe = new Stripe(validatedStripeKey, {
   apiVersion: "2024-06-20",
 });
 
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = stripe.webhooks.constructEvent(body, signature, validatedWebhookSecret);
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
       return NextResponse.json(
