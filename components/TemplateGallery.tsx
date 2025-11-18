@@ -1,27 +1,22 @@
-"use client";
-
-const templates = [
-  { id: "trump-dance", name: "Trump Victory Dance", thumbnail: "/templates/trump-dance.jpg" },
-  { id: "elon-cybertruck", name: "Elon in Cybertruck", thumbnail: "/templates/elon-cybertruck.jpg" },
-  { id: "taylor-eras", name: "Taylor Swift Eras Tour", thumbnail: "/templates/taylor-eras.jpg" },
-  { id: "mrbeast-money", name: "MrBeast Money Rain", thumbnail: "/templates/mrbeast-money.jpg" },
-  { id: "rizz", name: "Ohio Rizz Face", thumbnail: "/templates/rizz.jpg" },
-];
-
 export default function TemplateGallery() {
+  const templates = [
+    { id: "trump-dance", title: "Trump Victory Dance", thumbnail: "/thumbs/trump.jpg" },
+    { id: "elon-cybertruck", title: "Elon Cybertruck Flex", thumbnail: "/thumbs/elon.jpg" },
+    { id: "taylor-eras", title: "Taylor Swift Eras Tour", thumbnail: "/thumbs/taylor.jpg" },
+    { id: "mrbeast-money", title: "MrBeast Money Rain", thumbnail: "/thumbs/mrbeast.jpg" },
+    { id: "rizz", title: "Ohio Rizz Face", thumbnail: "/thumbs/rizz.jpg" },
+    // Add 100+ more
+  ];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      {templates.map((template) => (
-        <div
-          key={template.id}
-          className="relative group overflow-hidden rounded-2xl bg-gray-900 border border-gray-800 hover:border-pink-500 transition-all cursor-pointer"
-        >
-          <div className="aspect-video bg-gray-800 flex items-center justify-center">
-            <span className="text-gray-600 text-sm">Template Preview</span>
-          </div>
-          <div className="p-6">
-            <h3 className="text-xl font-semibold text-white">{template.name}</h3>
-            <p className="text-gray-400 mt-2 text-sm">Click to select this template</p>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      {templates.map((t) => (
+        <div key={t.id} className="group cursor-pointer">
+          <div className="relative overflow-hidden rounded-2xl aspect-video bg-gray-900">
+            <img src={t.thumbnail} alt={t.title} className="w-full h-full object-cover group-hover:scale-110 transition" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition flex items-end p-4">
+              <p className="text-lg font-bold">{t.title}</p>
+            </div>
           </div>
         </div>
       ))}
