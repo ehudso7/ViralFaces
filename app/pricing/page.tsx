@@ -1,18 +1,45 @@
 "use client";
 
 import { loadStripe } from "@stripe/stripe-js";
+import { useState } from "react";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Validate environment variable
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+if (!publishableKey) {
+  throw new Error("Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable");
+}
+
+const stripePromise = loadStripe(publishableKey);
 
 export default function Pricing() {
-  const handleCheckout = async (priceId: string) => {
-    const stripe = await stripePromise;
-    await stripe?.redirectToCheckout({
-      lineItems: [{ price: priceId, quantity: 1 }],
-      mode: priceId.includes("sub") ? "subscription" : "payment",
-      successUrl: window.location.origin + "/success",
-      cancelUrl: window.location.href,
-    });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleCheckout = async (priceId: string, mode: "payment" | "subscription" = "payment") => {
+    try {
+      setIsProcessing(true);
+
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Stripe failed to initialize");
+      }
+
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [{ price: priceId, quantity: 1 }],
+        mode,
+        successUrl: window.location.origin + "/success",
+        cancelUrl: window.location.href,
+      });
+
+      if (error) {
+        console.error("Stripe checkout error:", error);
+        alert("Payment initialization failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -22,9 +49,16 @@ export default function Pricing() {
         <div className="p-8 bg-gray-900 rounded-3xl">
           <h3 className="text-2xl font-bold mb-4">1 Video</h3>
           <p className="text-6xl font-bold mb-6">$9</p>
-          <button onClick={() => handleCheckout("price_1XYZ123")} className="w-full py-4 bg-gradient-to-r from-pink-500 to-violet-500 rounded-xl">
-            Buy Now
+          <button
+            onClick={() => handleCheckout("price_1XYZ123", "payment")}
+            disabled={isProcessing}
+            className="w-full py-4 bg-gradient-to-r from-pink-500 to-violet-500 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isProcessing ? "Processing..." : "Buy Now"}
           </button>
+          <p className="mt-4 text-xs text-gray-500">
+            TODO: Replace price_1XYZ123 with real Stripe price ID
+          </p>
         </div>
         {/* Add more tiers */}
       </div>
