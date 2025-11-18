@@ -134,8 +134,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!output.startsWith("http")) {
-      console.error("Output is not a valid URL:", output);
+    // Validate output is a valid URL
+    try {
+      const url = new URL(output);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        throw new Error("Invalid protocol");
+      }
+    } catch (urlError) {
+      console.error("Output is not a valid URL:", output, urlError);
       return NextResponse.json(
         { error: "Failed to generate video - invalid URL from AI service" },
         { status: 500 }
