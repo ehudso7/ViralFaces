@@ -1,7 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import UploadForm from "@/components/UploadForm";
 import TemplateGallery from "@/components/TemplateGallery";
 
 export default function Home() {
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("trump-dance");
+
   return (
     <main className="min-h-screen">
       {/* Hero */}
@@ -12,12 +17,12 @@ export default function Home() {
         <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
           Upload a selfie → Pick any viral template → Get an ultra-realistic video in seconds
         </p>
-        <UploadForm />
+        <UploadForm selectedTemplate={selectedTemplate} onTemplateChange={setSelectedTemplate} />
       </section>
 
       <section className="py-20 px-6">
         <h2 className="text-4xl font-bold text-center mb-12">Choose Your Viral Moment</h2>
-        <TemplateGallery />
+        <TemplateGallery onSelect={setSelectedTemplate} selectedId={selectedTemplate} />
       </section>
 
       <footer className="py-12 text-center text-gray-500">
