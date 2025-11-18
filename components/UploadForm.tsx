@@ -14,38 +14,84 @@ export default function UploadForm() {
   const [templateId, setTemplateId] = useState<string>("trump-dance");
   const [loading, setLoading] = useState(false);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
 
+    // Validate file
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('Please upload a valid image file (JPEG, PNG, or WebP)');
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError('File size must be less than 10MB');
+      return;
+    }
+
     setLoading(true);
-    const userId = uuidv4();
-    const facePath = `${userId}/face.jpg`;
+    setError(null);
+    setResultUrl(null);
 
-    // Upload face
-    await supabase.storage.from("faces").upload(facePath, file);
+    try {
+      const userId = uuidv4();
+      const facePath = `${userId}/face.jpg`;
 
-    // Call server action to queue job
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        facePath,
-        templateId,
-        userId,
-        watermark: true
-      }),
-    });
+      // Upload face
+      const { error: uploadError } = await supabase.storage
+        .from("faces")
+        .upload(facePath, file);
 
-    const data = await res.json();
-    setResultUrl(data.videoUrl);
-    setLoading(false);
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      // Call server action to queue job
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          facePath,
+          templateId,
+          userId,
+          watermark: true
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'API error' }));
+        throw new Error(`API Error: ${res.status} ${errorData.message || ''}`);
+      }
+
+      const data = await res.json();
+
+      if (!data.videoUrl) {
+        throw new Error("No video URL returned from API");
+      }
+
+      setResultUrl(data.videoUrl);
+    } catch (error) {
+      console.error("Error generating video:", error);
+      setError(error instanceof Error ? error.message : "Failed to generate video. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-8">
+        {error && (
+          <div className="p-4 rounded-xl bg-red-900/50 border border-red-500 text-red-200">
+            {error}
+          </div>
+        )}
+
         <div>
           <input
             type="file"
