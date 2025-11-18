@@ -9,12 +9,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default function UploadForm() {
+interface UploadFormProps {
+  selectedTemplate?: string;
+  onTemplateChange?: (templateId: string) => void;
+}
+
+export default function UploadForm({ selectedTemplate, onTemplateChange }: UploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [templateId, setTemplateId] = useState<string>("trump-dance");
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [progressMessage, setProgressMessage] = useState<string>("");
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const templateId = selectedTemplate || "trump-dance";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,12 +45,17 @@ export default function UploadForm() {
     setLoading(true);
     setError(null);
     setResultUrl(null);
+    setProgress(0);
+    setProgressMessage("Preparing your upload...");
 
     try {
       const userId = uuidv4();
       const facePath = `${userId}/face.jpg`;
 
       // Upload face
+      setProgress(10);
+      setProgressMessage("Uploading your photo...");
+
       const { error: uploadError } = await supabase.storage
         .from("faces")
         .upload(facePath, file);
@@ -50,6 +63,9 @@ export default function UploadForm() {
       if (uploadError) {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
+
+      setProgress(30);
+      setProgressMessage("Analyzing your face...");
 
       // Call server action to queue job
       const res = await fetch("/api/generate", {
@@ -63,6 +79,9 @@ export default function UploadForm() {
         }),
       });
 
+      setProgress(50);
+      setProgressMessage("Generating your viral video...");
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ message: 'API error' }));
         throw new Error(`API Error: ${res.status} ${errorData.message || ''}`);
@@ -74,12 +93,29 @@ export default function UploadForm() {
         throw new Error("No video URL returned from API");
       }
 
+      setProgress(90);
+      setProgressMessage("Finalizing your video...");
+
+      // Simulate final processing
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setProgress(100);
+      setProgressMessage("Done! Your video is ready.");
       setResultUrl(data.videoUrl);
     } catch (error) {
       console.error("Error generating video:", error);
       setError(error instanceof Error ? error.message : "Failed to generate video. Please try again.");
+      setProgress(0);
+      setProgressMessage("");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTemplateId = e.target.value;
+    if (onTemplateChange) {
+      onTemplateChange(newTemplateId);
     }
   };
 
@@ -106,7 +142,7 @@ export default function UploadForm() {
           <label className="block text-xl mb-4">Select Template</label>
           <select
             value={templateId}
-            onChange={(e) => setTemplateId(e.target.value)}
+            onChange={handleTemplateChange}
             className="w-full p-4 rounded-xl bg-gray-900 border border-gray-700 text-white text-lg"
           >
             <option value="trump-dance">Trump Victory Dance</option>
@@ -117,6 +153,21 @@ export default function UploadForm() {
             {/* Add 100+ more */}
           </select>
         </div>
+
+        {loading && progress > 0 && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-gray-400">
+              <span>{progressMessage}</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all duration-500 ease-out"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <button
           type="submit"
