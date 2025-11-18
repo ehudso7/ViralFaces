@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     // 3. Run LivePortrait (best open-source face swap Nov 2025)
     console.log(`Starting face swap for user ${userId} with template ${templateId}`);
 
-    let output;
+    let output: unknown;
     try {
       output = await replicate.run(
         "fofr/liveportrait:9f15898c2cd6e85e9e5807f2ead2d5c7f0f2c285c3e7a42e1f0e2028acdf9e76",
@@ -126,10 +126,24 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate output is a string URL
-    if (typeof output !== "string" || !output.startsWith("http")) {
+    if (typeof output !== "string") {
       console.error("Unexpected output from Replicate:", output);
       return NextResponse.json(
         { error: "Failed to generate video - invalid output from AI service" },
+        { status: 500 }
+      );
+    }
+
+    // Validate output is a valid URL
+    try {
+      const url = new URL(output);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        throw new Error("Invalid protocol");
+      }
+    } catch (urlError) {
+      console.error("Output is not a valid URL:", output, urlError);
+      return NextResponse.json(
+        { error: "Failed to generate video - invalid URL from AI service" },
         { status: 500 }
       );
     }
