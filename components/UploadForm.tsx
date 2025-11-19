@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
+import VideoPlayer from "./VideoPlayer";
 
 interface UploadFormProps {
   selectedTemplate?: string;
@@ -92,8 +93,18 @@ export default function UploadForm({ selectedTemplate, onTemplateChange }: Uploa
       setProgressMessage("Generating your viral video...");
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: 'API error' }));
-        throw new Error(`API Error: ${res.status} ${errorData.message || ''}`);
+        const errorData = await res.json().catch(() => ({ error: 'Unknown API error', message: '' }));
+
+        // Provide specific error messages
+        if (res.status === 503 && errorData.error?.includes('Storage not configured')) {
+          throw new Error('⚠️ Storage Setup Required: Please run the SQL script from SETUP.md in your Supabase dashboard to create storage buckets. This is a one-time setup step.');
+        }
+
+        if (res.status === 500) {
+          throw new Error(`Server Error: ${errorData.message || errorData.error || 'Please check if all environment variables are configured correctly.'}`);
+        }
+
+        throw new Error(errorData.message || errorData.error || `API Error: ${res.status}`);
       }
 
       const data = await res.json();
@@ -188,12 +199,11 @@ export default function UploadForm({ selectedTemplate, onTemplateChange }: Uploa
       </form>
 
       {resultUrl && (
-        <div className="mt-12 text-center">
-          <video controls className="rounded-2xl mx-auto max-w-full" src={resultUrl} />
-          <p className="mt-6">
-            <a href={resultUrl} className="text-pink-400 underline text-xl">Download HD</a> |
-            <a href="/pricing" className="ml-4 text-violet-400 underline text-xl">Remove Watermark ($9)</a>
-          </p>
+        <div className="mt-12">
+          <h3 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+            ✨ Your Viral Video is Ready!
+          </h3>
+          <VideoPlayer videoUrl={resultUrl} />
         </div>
       )}
     </div>
