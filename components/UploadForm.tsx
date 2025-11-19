@@ -66,6 +66,10 @@ export default function UploadForm({ selectedTemplate, onTemplateChange }: Uploa
         .upload(facePath, file);
 
       if (uploadError) {
+        // Provide helpful error message for bucket not found
+        if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('bucket')) {
+          throw new Error('Storage not configured. Please create Supabase storage buckets named "faces" and "results". See SETUP.md for instructions.');
+        }
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 

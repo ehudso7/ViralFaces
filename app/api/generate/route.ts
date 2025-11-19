@@ -72,8 +72,18 @@ export async function POST(req: NextRequest) {
 
     if (downloadError || !faceFile) {
       console.error("Failed to download face image:", downloadError);
+      const errorMsg = downloadError?.message || "Unknown error";
+
+      // Provide helpful error for bucket issues
+      if (errorMsg.includes('Bucket not found') || errorMsg.includes('bucket')) {
+        return NextResponse.json(
+          { error: 'Storage not configured', message: 'Please create Supabase storage buckets. See SETUP.md for instructions.' },
+          { status: 503 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Failed to download face image", details: downloadError?.message },
+        { error: "Failed to download face image", details: errorMsg },
         { status: 404 }
       );
     }
@@ -176,6 +186,15 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) {
       console.error("Failed to save video to storage:", uploadError);
+
+      // Provide helpful error for bucket issues
+      if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('bucket')) {
+        return NextResponse.json(
+          { error: 'Storage not configured', message: 'Please create Supabase "results" bucket. See SETUP.md for instructions.' },
+          { status: 503 }
+        );
+      }
+
       return NextResponse.json(
         { error: "Failed to save video to storage", details: uploadError.message },
         { status: 500 }
