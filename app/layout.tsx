@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Analytics as CustomAnalytics } from "@/components/Analytics";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -46,9 +49,36 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="theme-color" content="#ec4899" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "ViralFaces AI",
+              description:
+                "AI-powered face swapping service for creating viral videos",
+              url: "https://viralfaces.ai",
+              applicationCategory: "MultimediaApplication",
+              offers: {
+                "@type": "Offer",
+                price: "9.00",
+                priceCurrency: "USD",
+              },
+            }),
+          }}
+        />
+      </head>
       <body className={`${inter.className} bg-dark text-white`}>
-        {children}
+        <ErrorBoundary>
+          {children}
+          <CustomAnalytics />
+        </ErrorBoundary>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
