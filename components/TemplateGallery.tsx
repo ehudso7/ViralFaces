@@ -9,11 +9,11 @@ interface TemplateGalleryProps {
 }
 
 const templates: Template[] = [
-  { id: "trump-dance", title: "Trump Victory Dance", thumbnail: "/thumbs/trump.jpg" },
-  { id: "elon-cybertruck", title: "Elon Cybertruck Flex", thumbnail: "/thumbs/elon.jpg" },
-  { id: "taylor-eras", title: "Taylor Swift Eras Tour", thumbnail: "/thumbs/taylor.jpg" },
-  { id: "mrbeast-money", title: "MrBeast Money Rain", thumbnail: "/thumbs/mrbeast.jpg" },
-  { id: "rizz", title: "Ohio Rizz Face", thumbnail: "/thumbs/rizz.jpg" },
+  { id: "trump-dance", title: "Trump Victory Dance", thumbnail: "/thumbs/trump.svg" },
+  { id: "elon-cybertruck", title: "Elon Cybertruck Flex", thumbnail: "/thumbs/elon.svg" },
+  { id: "taylor-eras", title: "Taylor Swift Eras Tour", thumbnail: "/thumbs/taylor.svg" },
+  { id: "mrbeast-money", title: "MrBeast Money Rain", thumbnail: "/thumbs/mrbeast.svg" },
+  { id: "rizz", title: "Ohio Rizz Face", thumbnail: "/thumbs/rizz.svg" },
   // Add 100+ more
 ];
 
