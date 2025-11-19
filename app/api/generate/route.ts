@@ -3,23 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import Replicate from "replicate";
 import { v4 as uuidv4 } from "uuid";
 
-// Validate environment variables at module initialization
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const replicateToken = process.env.REPLICATE_API_TOKEN;
-
-if (!supabaseUrl || !supabaseKey || !replicateToken) {
-  throw new Error(
-    "Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or REPLICATE_API_TOKEN"
-  );
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const replicate = new Replicate({
-  auth: replicateToken,
-});
-
 // Valid template IDs
 const VALID_TEMPLATES = [
   "trump-dance",
@@ -31,6 +14,24 @@ const VALID_TEMPLATES = [
 
 export async function POST(req: NextRequest) {
   try {
+    // Initialize services (lazy load to avoid build-time errors)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const replicateToken = process.env.REPLICATE_API_TOKEN;
+
+    if (!supabaseUrl || !supabaseKey || !replicateToken) {
+      console.error("Missing required environment variables");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const replicate = new Replicate({
+      auth: replicateToken,
+    });
+
     // Parse request body
     const body = await req.json();
     const { facePath, templateId, userId } = body;

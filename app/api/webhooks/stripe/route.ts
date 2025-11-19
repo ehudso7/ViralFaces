@@ -2,34 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-// Initialize Stripe
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-if (!stripeSecretKey || !webhookSecret) {
-  throw new Error("Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET");
-}
-
-// Create validated constants with proper types
-const validatedStripeKey: string = stripeSecretKey;
-const validatedWebhookSecret: string = webhookSecret;
-
-const stripe = new Stripe(validatedStripeKey, {
-  apiVersion: "2024-06-20",
-});
-
-// Initialize Supabase (for updating payment status)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase credentials");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 export async function POST(req: NextRequest) {
   try {
+    // Initialize Stripe (lazy load to avoid build-time errors)
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!stripeSecretKey || !webhookSecret) {
+      console.error("Missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-06-20",
+    });
+
+    // Initialize Supabase (for updating payment status)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("Missing Supabase credentials");
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
@@ -43,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, validatedWebhookSecret);
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
       return NextResponse.json(
