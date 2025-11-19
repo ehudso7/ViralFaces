@@ -174,6 +174,62 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 ---
 
+## Template Videos Setup
+
+⚠️ **CRITICAL**: Template videos are required for the face-swap to work!
+
+### Step 1: Prepare Template Videos
+
+You need to upload actual video files for each template:
+- Trump Victory Dance
+- Elon Cybertruck Flex
+- Taylor Swift Eras Tour
+- MrBeast Money Rain
+- Ohio Rizz Face
+
+**Video Requirements:**
+- Format: MP4
+- Duration: 5-30 seconds recommended
+- Resolution: 720p or 1080p
+- Contains a visible face for swapping
+
+### Step 2: Upload to Supabase Storage (Recommended)
+
+1. Go to Supabase → **Storage**
+2. Create a new public bucket named `templates`
+3. Upload your template videos:
+   - `trump-dance.mp4`
+   - `elon-cybertruck.mp4`
+   - `taylor-eras.mp4`
+   - `mrbeast-money.mp4`
+   - `rizz.mp4`
+4. Get the public URLs for each video
+5. Add the URLs to your environment variables (see below)
+
+### Step 3: Alternative - Use CDN
+
+Alternatively, you can host template videos on any CDN:
+- Cloudflare R2
+- AWS S3 with CloudFront
+- Vercel Blob Storage
+- Any public HTTPS URL
+
+**Important**: URLs must be publicly accessible via HTTPS
+
+### Step 4: Add Template URLs to Environment Variables
+
+Add these to your `.env.local` or Vercel environment variables:
+
+```bash
+TEMPLATE_TRUMP_DANCE_URL=https://your-supabase-project.supabase.co/storage/v1/object/public/templates/trump-dance.mp4
+TEMPLATE_ELON_URL=https://your-supabase-project.supabase.co/storage/v1/object/public/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_URL=https://your-supabase-project.supabase.co/storage/v1/object/public/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_URL=https://your-supabase-project.supabase.co/storage/v1/object/public/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://your-supabase-project.supabase.co/storage/v1/object/public/templates/rizz.mp4
+```
+
+---
+
 ## Environment Variables
 
 Create a `.env.local` file in the project root:
@@ -191,6 +247,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Replicate
 REPLICATE_API_TOKEN=r8_...
+
+# Template Videos (REQUIRED)
+TEMPLATE_TRUMP_DANCE_URL=https://...
+TEMPLATE_ELON_URL=https://...
+TEMPLATE_TAYLOR_URL=https://...
+TEMPLATE_MRBEAST_URL=https://...
+TEMPLATE_RIZZ_URL=https://...
 ```
 
 ### For Vercel Deployment
@@ -287,6 +350,33 @@ REPLICATE_API_TOKEN=r8_...
 2. For Vercel, go to Settings → Environment Variables
 3. Ensure variables are set for the correct environment
 4. Redeploy
+
+### "Template video not configured" Error
+
+**Problem**: Template video URLs not set in environment variables
+
+**Solution**:
+1. Upload template videos to Supabase storage or CDN
+2. Get public URLs for each video
+3. Add template URLs to environment variables:
+   ```
+   TEMPLATE_TRUMP_DANCE_URL=https://...
+   TEMPLATE_ELON_URL=https://...
+   TEMPLATE_TAYLOR_URL=https://...
+   TEMPLATE_MRBEAST_URL=https://...
+   TEMPLATE_RIZZ_URL=https://...
+   ```
+4. Restart your development server or redeploy
+
+### "Template video not accessible" Error
+
+**Problem**: Template video URL is not publicly accessible
+
+**Solution**:
+1. Verify the URL is correct and publicly accessible
+2. If using Supabase storage, ensure the bucket is public
+3. Test the URL in a browser - you should be able to download the video
+4. Check CORS settings if using external CDN
 
 ### Video generation timeout
 

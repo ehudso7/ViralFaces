@@ -90,17 +90,51 @@ export async function POST(req: NextRequest) {
 
     const faceBuffer = Buffer.from(await faceFile.arrayBuffer());
 
-    // 2. Get template video (pre-uploaded to public bucket or CDN)
-    // TODO: Move to database or config service for production
+    // 2. Get template video URL
+    // Template videos need to be uploaded to a public CDN or Supabase storage
+    // For demo purposes, you can use publicly accessible videos
     const templateVideos: Record<string, string> = {
-      "trump-dance": "https://viralfaces.ai/templates/trump-dance.mp4",
-      "elon-cybertruck": "https://viralfaces.ai/templates/elon-cybertruck.mp4",
-      "taylor-eras": "https://viralfaces.ai/templates/taylor-eras.mp4",
-      "mrbeast-money": "https://viralfaces.ai/templates/mrbeast-money.mp4",
-      "rizz": "https://viralfaces.ai/templates/rizz.mp4",
+      // TODO: Replace these with your actual template video URLs
+      // Upload your template videos to Supabase storage bucket "templates" or a CDN
+      // and update these URLs accordingly
+      "trump-dance": process.env.TEMPLATE_TRUMP_DANCE_URL || "",
+      "elon-cybertruck": process.env.TEMPLATE_ELON_URL || "",
+      "taylor-eras": process.env.TEMPLATE_TAYLOR_URL || "",
+      "mrbeast-money": process.env.TEMPLATE_MRBEAST_URL || "",
+      "rizz": process.env.TEMPLATE_RIZZ_URL || "",
     };
 
     const templateUrl = templateVideos[templateId];
+
+    if (!templateUrl || templateUrl === "") {
+      console.error(`Template video URL not configured for: ${templateId}`);
+      return NextResponse.json(
+        {
+          error: "Template video not configured",
+          message: `The template "${templateId}" is not set up yet. Please upload template videos to a CDN or Supabase storage and add the URLs to your environment variables (TEMPLATE_${templateId.toUpperCase().replace(/-/g, '_')}_URL).`,
+          details: "See SETUP.md for instructions on setting up template videos."
+        },
+        { status: 503 }
+      );
+    }
+
+    // Validate template URL is accessible
+    try {
+      const templateCheck = await fetch(templateUrl, { method: 'HEAD' });
+      if (!templateCheck.ok) {
+        throw new Error(`Template video not accessible: ${templateCheck.status}`);
+      }
+    } catch (urlCheckError) {
+      console.error("Template URL validation failed:", urlCheckError);
+      return NextResponse.json(
+        {
+          error: "Template video not accessible",
+          message: `Unable to access the template video at ${templateUrl}. Please check the URL is correct and publicly accessible.`,
+          details: urlCheckError instanceof Error ? urlCheckError.message : "Unknown error"
+        },
+        { status: 503 }
+      );
+    }
 
     // 3. Run LivePortrait (best open-source face swap Nov 2025)
     console.log(`Starting face swap for user ${userId} with template ${templateId}`);
