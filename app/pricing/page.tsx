@@ -3,14 +3,6 @@
 import { loadStripe } from "@stripe/stripe-js";
 import { useState } from "react";
 
-// Validate environment variable
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-if (!publishableKey) {
-  throw new Error("Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY environment variable");
-}
-
-const stripePromise = loadStripe(publishableKey);
-
 export default function Pricing() {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -18,6 +10,15 @@ export default function Pricing() {
     try {
       setIsProcessing(true);
 
+      // Lazy load Stripe at runtime
+      const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (!publishableKey) {
+        console.error("Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
+        alert("Payment system is not configured. Please contact support.");
+        return;
+      }
+
+      const stripePromise = loadStripe(publishableKey);
       const stripe = await stripePromise;
       if (!stripe) {
         throw new Error("Stripe failed to initialize");
