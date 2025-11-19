@@ -4,11 +4,6 @@ import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 interface UploadFormProps {
   selectedTemplate?: string;
   onTemplateChange?: (templateId: string) => void;
@@ -49,6 +44,16 @@ export default function UploadForm({ selectedTemplate, onTemplateChange }: Uploa
     setProgressMessage("Preparing your upload...");
 
     try {
+      // Initialize Supabase at runtime
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase configuration is missing. Please contact support.");
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
       const userId = uuidv4();
       const facePath = `${userId}/face.jpg`;
 
