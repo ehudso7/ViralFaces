@@ -1,44 +1,55 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-export function Analytics() {
+function AnalyticsInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       // Track page views
-      const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+      const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
 
-      // Google Analytics (if GA_MEASUREMENT_ID is set)
-      if (window.gtag) {
-        window.gtag("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "", {
-          page_path: url,
-        });
+      // Google Analytics (only if GA_MEASUREMENT_ID is set and valid)
+      const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+      if (gaId && gaId !== "" && window.gtag) {
+        try {
+          window.gtag("config", gaId, {
+            page_path: url,
+          });
+        } catch (error) {
+          console.error("[Analytics] GA tracking failed:", error);
+        }
       }
-
-      // Custom analytics event
-      console.log("[Analytics] Page view:", url);
     }
   }, [pathname, searchParams]);
 
   return null;
 }
 
+export function Analytics() {
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsInner />
+    </Suspense>
+  );
+}
+
 // Event tracking helper
 export function trackEvent(eventName: string, eventData?: Record<string, any>) {
   if (typeof window !== "undefined") {
-    // Google Analytics
-    if (window.gtag) {
-      window.gtag("event", eventName, eventData);
+    const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+    // Google Analytics (only if configured)
+    if (gaId && gaId !== "" && window.gtag) {
+      try {
+        window.gtag("event", eventName, eventData);
+      } catch (error) {
+        console.error("[Analytics] Event tracking failed:", error);
+      }
     }
-
-    // Console log for development
-    console.log("[Analytics] Event:", eventName, eventData);
-
-    // You can add other analytics providers here (Mixpanel, Amplitude, etc.)
   }
 }
 

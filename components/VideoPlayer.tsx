@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { trackEvent } from "./Analytics";
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -13,6 +14,25 @@ export default function VideoPlayer({ videoUrl, onDownload, onShare }: VideoPlay
   const [isMuted, setIsMuted] = useState(false);
   const [copied, setCopied] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Validate URL is from trusted domain
+  const isValidVideoUrl = (url: string): boolean => {
+    try {
+      const parsedUrl = new URL(url);
+      // Allow Supabase storage and Replicate CDN
+      const trustedDomains = [
+        '.supabase.co',
+        'supabase.co',
+        'replicate.delivery',
+        'pbxt.replicate.delivery',
+      ];
+      return trustedDomains.some(domain =>
+        parsedUrl.hostname === domain || parsedUrl.hostname.endsWith(domain)
+      );
+    } catch {
+      return false;
+    }
+  };
 
   const handlePlayPause = () => {
     if (videoRef.current) {
@@ -33,17 +53,27 @@ export default function VideoPlayer({ videoUrl, onDownload, onShare }: VideoPlay
   };
 
   const handleDownload = async () => {
+    // Validate URL before download
+    if (!isValidVideoUrl(videoUrl)) {
+      console.error("Invalid video URL for download");
+      alert("Unable to download: Invalid video URL");
+      return;
+    }
+
     try {
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Use simple link download instead of fetch for better performance
       const a = document.createElement("a");
-      a.href = url;
+      a.href = videoUrl;
       a.download = `viralfaces-${Date.now()}.mp4`;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+
+      // Track analytics
+      trackEvent("video_download", { url: videoUrl });
+
       if (onDownload) onDownload();
     } catch (error) {
       console.error("Download failed:", error);
@@ -57,17 +87,29 @@ export default function VideoPlayer({ videoUrl, onDownload, onShare }: VideoPlay
         await navigator.share({
           title: "My ViralFaces Video",
           text: "Check out my viral video created with ViralFaces AI!",
-          url: window.location.href,
+          url: videoUrl,
         });
+
+        // Track analytics
+        trackEvent("video_share", { method: "native", url: videoUrl });
+
         if (onShare) onShare();
       } catch (error) {
         console.log("Share cancelled or failed:", error);
       }
     } else {
       // Fallback: Copy link
-      navigator.clipboard.writeText(videoUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(videoUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+
+        // Track analytics
+        trackEvent("video_share", { method: "clipboard", url: videoUrl });
+      } catch (error) {
+        console.error("Clipboard write failed:", error);
+        alert("Unable to copy link. Please copy it manually: " + videoUrl);
+      }
     }
   };
 
