@@ -15,6 +15,10 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('results', 'results', false)
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('templates', 'templates', true)
+ON CONFLICT (id) DO NOTHING;
+
 -- Policy: Allow anyone to upload to 'faces' bucket
 CREATE POLICY "Allow public uploads to faces"
 ON storage.objects FOR INSERT
@@ -51,6 +55,28 @@ ON storage.objects FOR DELETE
 TO public
 USING (bucket_id = 'results');
 
+-- Policy: Allow anyone to upload to 'templates' bucket (for template videos)
+CREATE POLICY "Allow public uploads to templates"
+ON storage.objects FOR INSERT
+TO public
+WITH CHECK (bucket_id = 'templates');
+
+-- Policy: Allow anyone to read from 'templates' bucket (required for AI model access)
+CREATE POLICY "Allow public reads from templates"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'templates');
+
+-- Policy: Allow deletes from 'templates' bucket (for updating templates)
+CREATE POLICY "Allow public deletes from templates"
+ON storage.objects FOR DELETE
+TO public
+USING (bucket_id = 'templates');
+
 -- Success! Your storage is now configured.
 -- Note: These are PUBLIC policies for demo purposes.
 -- For production, add user authentication and restrict by user_id.
+-- 
+-- IMPORTANT: Don't forget to upload template videos!
+-- Run: npm run upload-templates
+-- Or see: upload-templates.md for instructions

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "upload-templates": "node scripts/upload-templates.js"
   },
   "dependencies": {
     "@stripe/stripe-js": "^4.10.0",

@@ -66,7 +66,13 @@ npm install
 3. Set up Supabase storage buckets:
    - Create a `faces` bucket for user uploads
    - Create a `results` bucket for generated videos
+   - Create a `templates` bucket for template videos (public)
    - Configure Row Level Security (RLS) policies
+
+3.5. Upload template videos:
+   - Upload your template videos to the `templates` bucket
+   - See [upload-templates.md](./upload-templates.md) for detailed instructions
+   - Add template URLs to `.env.local` (required)
 
 4. Create Stripe products:
    - Go to Stripe Dashboard → Products
@@ -160,7 +166,7 @@ Handles Stripe webhook events for payment processing.
 ### Critical (Implement Before Production)
 - [ ] **Authentication** - No user auth system (anyone can use API)
 - [ ] **Async Processing** - Replicate API is called synchronously (will timeout)
-- [ ] **Template URLs** - Hardcoded URLs don't exist (need CDN hosting)
+- [x] **Template URLs** - ✅ Now configurable via environment variables (see SETUP.md)
 - [ ] **Rate Limiting** - No rate limits on API endpoints
 
 ### Recommended

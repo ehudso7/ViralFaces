@@ -91,16 +91,28 @@ export async function POST(req: NextRequest) {
     const faceBuffer = Buffer.from(await faceFile.arrayBuffer());
 
     // 2. Get template video (pre-uploaded to public bucket or CDN)
-    // TODO: Move to database or config service for production
+    // Support environment variables for flexible template configuration
     const templateVideos: Record<string, string> = {
-      "trump-dance": "https://viralfaces.ai/templates/trump-dance.mp4",
-      "elon-cybertruck": "https://viralfaces.ai/templates/elon-cybertruck.mp4",
-      "taylor-eras": "https://viralfaces.ai/templates/taylor-eras.mp4",
-      "mrbeast-money": "https://viralfaces.ai/templates/mrbeast-money.mp4",
-      "rizz": "https://viralfaces.ai/templates/rizz.mp4",
+      "trump-dance": process.env.TEMPLATE_TRUMP_DANCE_URL || "",
+      "elon-cybertruck": process.env.TEMPLATE_ELON_CYBERTRUCK_URL || "",
+      "taylor-eras": process.env.TEMPLATE_TAYLOR_ERAS_URL || "",
+      "mrbeast-money": process.env.TEMPLATE_MRBEAST_MONEY_URL || "",
+      "rizz": process.env.TEMPLATE_RIZZ_URL || "",
     };
 
     const templateUrl = templateVideos[templateId];
+
+    // Check if template URL is configured
+    if (!templateUrl) {
+      console.error(`Template ${templateId} is not configured. Missing environment variable.`);
+      return NextResponse.json(
+        {
+          error: `The template "${templateId}" is not set up yet. Please upload template videos to a CDN or Supabase storage and add the URLs to your environment variables (TEMPLATE_${templateId.toUpperCase().replace(/-/g, "_")}_URL).`,
+          hint: "See SETUP.md for instructions on uploading template videos."
+        },
+        { status: 503 }
+      );
+    }
 
     // 3. Run LivePortrait (best open-source face swap Nov 2025)
     console.log(`Starting face swap for user ${userId} with template ${templateId}`);

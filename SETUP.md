@@ -91,6 +91,66 @@ USING (bucket_id = 'results');
    - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (⚠️ Keep secret!)
 
+### Step 5: Upload Template Videos
+
+⚠️ **Critical**: Template videos are required for the app to work. You need to upload your template videos and configure their URLs.
+
+#### Option A: Upload to Supabase Storage (Recommended)
+
+1. Go to **Storage** in the Supabase dashboard
+2. Click **"New bucket"**
+3. Create a bucket named `templates`
+4. Set as **Public** (required for video access)
+5. Click **"Create bucket"**
+
+6. Upload your template videos:
+   - Click on the `templates` bucket
+   - Click **"Upload file"**
+   - Upload these videos (you'll need to source or create them):
+     - `trump-dance.mp4` - Trump victory dance video
+     - `elon-cybertruck.mp4` - Elon in Cybertruck video
+     - `taylor-eras.mp4` - Taylor Swift Eras Tour video
+     - `mrbeast-money.mp4` - MrBeast money rain video
+     - `rizz.mp4` - Ohio rizz face video
+
+7. Get the public URLs for each video:
+   - Click on a video in the `templates` bucket
+   - Copy the public URL (format: `https://your-project.supabase.co/storage/v1/object/public/templates/video-name.mp4`)
+   - Add to your `.env.local` file:
+
+```bash
+TEMPLATE_TRUMP_DANCE_URL=https://your-project.supabase.co/storage/v1/object/public/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://your-project.supabase.co/storage/v1/object/public/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://your-project.supabase.co/storage/v1/object/public/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://your-project.supabase.co/storage/v1/object/public/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://your-project.supabase.co/storage/v1/object/public/templates/rizz.mp4
+```
+
+#### Option B: Use a CDN (Cloudinary, AWS S3, etc.)
+
+1. Upload your template videos to your preferred CDN
+2. Get the public URLs for each video
+3. Add the URLs to your `.env.local` file (same format as above)
+
+#### Template Video Requirements
+
+For best results, your template videos should:
+- Be 5-30 seconds long
+- Have a clear, visible face in most frames
+- Be in MP4 format
+- Have good lighting and minimal motion blur
+- Be publicly accessible via HTTPS
+
+#### Finding Template Videos
+
+You can:
+1. **Record your own**: Film short clips with clear facial expressions
+2. **Use stock footage**: Find royalty-free videos from sites like Pexels or Pixabay
+3. **Extract from existing content**: Use video editing tools to create short clips
+4. **Generate with AI**: Use AI video generation tools
+
+⚠️ **Copyright Notice**: Ensure you have the rights to use any template videos. Using copyrighted content without permission may result in legal issues.
+
 ---
 
 ## Stripe Setup
@@ -191,6 +251,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Replicate
 REPLICATE_API_TOKEN=r8_...
+
+# Template Video URLs (Required)
+TEMPLATE_TRUMP_DANCE_URL=https://xxxxx.supabase.co/storage/v1/object/public/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://xxxxx.supabase.co/storage/v1/object/public/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://xxxxx.supabase.co/storage/v1/object/public/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://xxxxx.supabase.co/storage/v1/object/public/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://xxxxx.supabase.co/storage/v1/object/public/templates/rizz.mp4
 ```
 
 ### For Vercel Deployment
@@ -228,8 +295,10 @@ REPLICATE_API_TOKEN=r8_...
 
 ### Post-Deployment Checklist
 
-- [ ] Supabase buckets created (`faces` and `results`)
+- [ ] Supabase buckets created (`faces`, `results`, and `templates`)
 - [ ] Storage policies configured
+- [ ] Template videos uploaded to `templates` bucket
+- [ ] Template URL environment variables configured
 - [ ] Stripe product created with correct price ID
 - [ ] Stripe webhook endpoint added with production URL
 - [ ] All environment variables added to Vercel
@@ -260,13 +329,23 @@ REPLICATE_API_TOKEN=r8_...
 
 ## Troubleshooting
 
+### "Template is not set up yet" Error
+
+**Problem**: Template video URLs are not configured
+
+**Solution**:
+1. Upload template videos to Supabase storage or a CDN (see [Step 5](#step-5-upload-template-videos))
+2. Add the template URL environment variables to `.env.local`
+3. Restart your development server with `npm run dev`
+4. For production, add the environment variables in Vercel and redeploy
+
 ### "Bucket not found" Error
 
 **Problem**: Supabase storage buckets don't exist
 
 **Solution**:
 1. Go to Supabase → Storage
-2. Create `faces` and `results` buckets
+2. Create `faces`, `results`, and `templates` buckets
 3. Configure storage policies (see [Step 3](#step-3-configure-storage-policies))
 
 ### "Payment system is not configured" Error
@@ -316,11 +395,12 @@ If you encounter issues:
 After successful setup:
 
 1. Replace placeholder template thumbnails with real images
-2. Add actual template video URLs (currently hardcoded)
+2. ✅ Template video URLs are now configurable via environment variables
 3. Implement user authentication
 4. Set up async video processing
 5. Add rate limiting
 6. Create user dashboard
+7. Add more template videos to expand your gallery
 
 See `README.md` for full feature roadmap.
 

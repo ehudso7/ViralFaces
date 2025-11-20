@@ -37,7 +37,16 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 REPLICATE_API_TOKEN=r8_...
+
+# Template Video URLs (REQUIRED)
+TEMPLATE_TRUMP_DANCE_URL=https://your-project.supabase.co/storage/v1/object/public/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://your-project.supabase.co/storage/v1/object/public/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://your-project.supabase.co/storage/v1/object/public/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://your-project.supabase.co/storage/v1/object/public/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://your-project.supabase.co/storage/v1/object/public/templates/rizz.mp4
 ```
+
+⚠️ **Important**: Upload template videos to the `templates` bucket first! See [upload-templates.md](upload-templates.md)
 
 4. **Redeploy** your project
 
@@ -77,6 +86,7 @@ If you prefer clicking buttons:
 3. Name: `faces`, Public: Off, Max file size: 10MB
 4. Click **Create bucket**
 5. Repeat for `results` bucket (Max: 100MB)
+6. Create `templates` bucket (Public: **On**, for template videos)
 
 ### Create Policies
 
@@ -124,11 +134,16 @@ https://app.supabase.com/project/YOUR_PROJECT/storage/buckets
 
 ## Troubleshooting
 
+**"Template is not set up yet"**
+→ Upload template videos to Supabase Storage
+→ Add TEMPLATE_*_URL variables to Vercel
+→ See [upload-templates.md](upload-templates.md) for help
+
 **"Bucket not found"**
 → Run `supabase-setup.sql` in SQL Editor
 
 **"Storage not configured"**
-→ Check buckets exist in Storage tab
+→ Check buckets exist in Storage tab (faces, results, templates)
 
 **"Payment system not configured"**
 → Add `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` to Vercel env vars
@@ -148,7 +163,7 @@ Before going live:
 - [ ] Set up Stripe webhook with production URL
 - [ ] Add Replicate billing/credits
 - [ ] Test full payment flow
-- [ ] Add real template video URLs
+- [ ] ✅ Upload template videos and set URLs (use upload-templates.md)
 - [ ] Consider adding user authentication
 - [ ] Set up monitoring/error tracking
 
