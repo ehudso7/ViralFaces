@@ -91,16 +91,39 @@ export async function POST(req: NextRequest) {
     const faceBuffer = Buffer.from(await faceFile.arrayBuffer());
 
     // 2. Get template video (pre-uploaded to public bucket or CDN)
-    // TODO: Move to database or config service for production
-    const templateVideos: Record<string, string> = {
-      "trump-dance": "https://viralfaces.ai/templates/trump-dance.mp4",
-      "elon-cybertruck": "https://viralfaces.ai/templates/elon-cybertruck.mp4",
-      "taylor-eras": "https://viralfaces.ai/templates/taylor-eras.mp4",
-      "mrbeast-money": "https://viralfaces.ai/templates/mrbeast-money.mp4",
-      "rizz": "https://viralfaces.ai/templates/rizz.mp4",
+    // Check environment variables first, then fall back to hardcoded URLs
+    const getTemplateUrl = (id: string): string | null => {
+      // Convert template ID to env var format (e.g., "trump-dance" -> "TEMPLATE_TRUMP_DANCE_URL")
+      const envKey = `TEMPLATE_${id.toUpperCase().replace(/-/g, "_")}_URL`;
+      const envUrl = process.env[envKey];
+      
+      if (envUrl) {
+        return envUrl;
+      }
+      
+      // Fallback to hardcoded URLs
+      const fallbackUrls: Record<string, string> = {
+        "trump-dance": "https://viralfaces.ai/templates/trump-dance.mp4",
+        "elon-cybertruck": "https://viralfaces.ai/templates/elon-cybertruck.mp4",
+        "taylor-eras": "https://viralfaces.ai/templates/taylor-eras.mp4",
+        "mrbeast-money": "https://viralfaces.ai/templates/mrbeast-money.mp4",
+        "rizz": "https://viralfaces.ai/templates/rizz.mp4",
+      };
+      
+      return fallbackUrls[id] || null;
     };
 
-    const templateUrl = templateVideos[templateId];
+    const templateUrl = getTemplateUrl(templateId);
+    
+    if (!templateUrl) {
+      const envVarName = `TEMPLATE_${templateId.toUpperCase().replace(/-/g, "_")}_URL`;
+      return NextResponse.json(
+        {
+          error: `The template "${templateId}" is not set up yet. Please upload template videos to a CDN or Supabase storage and add the URLs to your environment variables (${envVarName}).`
+        },
+        { status: 400 }
+      );
+    }
 
     // 3. Run LivePortrait (best open-source face swap Nov 2025)
     console.log(`Starting face swap for user ${userId} with template ${templateId}`);
