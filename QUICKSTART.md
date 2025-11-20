@@ -39,7 +39,19 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 REPLICATE_API_TOKEN=r8_...
 ```
 
-4. **Redeploy** your project
+4. Add a public MP4 URL for every template the app offers:
+
+```bash
+TEMPLATE_TRUMP_DANCE_URL=https://cdn.yoursite.com/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://cdn.yoursite.com/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://cdn.yoursite.com/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://cdn.yoursite.com/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://cdn.yoursite.com/templates/rizz.mp4
+```
+
+> Upload the MP4s to Supabase Storage (e.g., a `templates` bucket) or any CDN and paste the public URLs above.
+
+5. **Redeploy** your project
 
 ### Step 4: Test!
 

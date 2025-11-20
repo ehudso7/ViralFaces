@@ -48,7 +48,16 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Replicate
 REPLICATE_API_TOKEN=r8_...
+
+# Template videos (host these MP4s on Supabase storage or any CDN)
+TEMPLATE_TRUMP_DANCE_URL=https://cdn.yoursite.com/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://cdn.yoursite.com/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://cdn.yoursite.com/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://cdn.yoursite.com/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://cdn.yoursite.com/templates/rizz.mp4
 ```
+
+> **Tip:** You can create a `templates` bucket in Supabase Storage, upload each MP4, make it public, and paste the public URLs above. Any HTTPS-accessible CDN works too.
 
 ### Installation
 

@@ -3,14 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 import Replicate from "replicate";
 import { v4 as uuidv4 } from "uuid";
 
+interface TemplateConfig {
+  envVar: string;
+  title: string;
+}
+
+const TEMPLATE_CONFIG: Record<string, TemplateConfig> = {
+  "trump-dance": { envVar: "TEMPLATE_TRUMP_DANCE_URL", title: "Trump Victory Dance" },
+  "elon-cybertruck": { envVar: "TEMPLATE_ELON_CYBERTRUCK_URL", title: "Elon in Cybertruck" },
+  "taylor-eras": { envVar: "TEMPLATE_TAYLOR_ERAS_URL", title: "Taylor Swift Eras Tour" },
+  "mrbeast-money": { envVar: "TEMPLATE_MRBEAST_MONEY_URL", title: "MrBeast Money Rain" },
+  "rizz": { envVar: "TEMPLATE_RIZZ_URL", title: "Ohio Rizz Face" },
+};
+
 // Valid template IDs
-const VALID_TEMPLATES = [
-  "trump-dance",
-  "elon-cybertruck",
-  "taylor-eras",
-  "mrbeast-money",
-  "rizz"
-];
+const VALID_TEMPLATES = Object.keys(TEMPLATE_CONFIG);
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,6 +72,43 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const templateConfig = TEMPLATE_CONFIG[templateId];
+    if (!templateConfig) {
+      return NextResponse.json(
+        { error: `Template "${templateId}" is not recognized. Please try another template.` },
+        { status: 400 }
+      );
+    }
+
+    const templateEnvVarValue = process.env[templateConfig.envVar]?.trim();
+
+    if (!templateEnvVarValue) {
+      return NextResponse.json(
+        {
+          error: `The template "${templateId}" is not set up yet. Please upload template videos to a CDN or Supabase storage and add the URLs to your environment variables (${templateConfig.envVar}).`
+        },
+        { status: 400 }
+      );
+    }
+
+    let templateUrl: string;
+    try {
+      const parsed = new URL(templateEnvVarValue);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("Template URL must be http or https");
+      }
+      templateUrl = parsed.toString();
+    } catch (templateUrlError) {
+      console.error("Invalid template URL configured:", templateEnvVarValue, templateUrlError);
+      return NextResponse.json(
+        {
+          error: `The configured URL for template "${templateId}" is invalid. Please ensure ${templateConfig.envVar} is a valid http(s) URL.`,
+          details: templateUrlError instanceof Error ? templateUrlError.message : "Invalid URL"
+        },
+        { status: 500 }
+      );
+    }
+
     // 1. Download user's face
     const { data: faceFile, error: downloadError } = await supabase.storage
       .from("faces")
@@ -89,18 +133,6 @@ export async function POST(req: NextRequest) {
     }
 
     const faceBuffer = Buffer.from(await faceFile.arrayBuffer());
-
-    // 2. Get template video (pre-uploaded to public bucket or CDN)
-    // TODO: Move to database or config service for production
-    const templateVideos: Record<string, string> = {
-      "trump-dance": "https://viralfaces.ai/templates/trump-dance.mp4",
-      "elon-cybertruck": "https://viralfaces.ai/templates/elon-cybertruck.mp4",
-      "taylor-eras": "https://viralfaces.ai/templates/taylor-eras.mp4",
-      "mrbeast-money": "https://viralfaces.ai/templates/mrbeast-money.mp4",
-      "rizz": "https://viralfaces.ai/templates/rizz.mp4",
-    };
-
-    const templateUrl = templateVideos[templateId];
 
     // 3. Run LivePortrait (best open-source face swap Nov 2025)
     console.log(`Starting face swap for user ${userId} with template ${templateId}`);

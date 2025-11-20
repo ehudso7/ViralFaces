@@ -91,6 +91,17 @@ USING (bucket_id = 'results');
    - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` (⚠️ Keep secret!)
 
+### Step 5: Upload Template Videos
+
+Each template in the app expects a hosted MP4 file.
+
+1. (Recommended) In Supabase **Storage**, create a new bucket named `templates` and set it to **Public**.
+2. Upload your template MP4 files (e.g., `trump-dance.mp4`, `elon-cybertruck.mp4`, etc.).
+3. Click each file → **Copy public URL**.
+4. Paste those URLs into the `TEMPLATE_*` environment variables described below.
+
+> You can also use any other CDN or storage provider. The only requirement is that the URL is publicly accessible via HTTPS.
+
 ---
 
 ## Stripe Setup
@@ -191,6 +202,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Replicate
 REPLICATE_API_TOKEN=r8_...
+
+# Template videos
+TEMPLATE_TRUMP_DANCE_URL=https://cdn.yoursite.com/templates/trump-dance.mp4
+TEMPLATE_ELON_CYBERTRUCK_URL=https://cdn.yoursite.com/templates/elon-cybertruck.mp4
+TEMPLATE_TAYLOR_ERAS_URL=https://cdn.yoursite.com/templates/taylor-eras.mp4
+TEMPLATE_MRBEAST_MONEY_URL=https://cdn.yoursite.com/templates/mrbeast-money.mp4
+TEMPLATE_RIZZ_URL=https://cdn.yoursite.com/templates/rizz.mp4
 ```
 
 ### For Vercel Deployment
